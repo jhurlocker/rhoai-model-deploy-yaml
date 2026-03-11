@@ -11,9 +11,10 @@ This repository provides a Helm chart to seamlessly deploy generative AI models 
 
 ## Prerequisites
 
-- **OpenShift Container Platform (OCP)** is installed and you are authenticated as admin.
-- **Red Hat OpenShift AI (RHOAI)** is already installed and configured on the cluster. Admin access is required. 
-- **Helm v3+** is installed on your local machine.
+- **OpenShift Container Platform (OCP)** Is installed you are authenticated as admin.
+- **NVIDIA GPUs** The Node Feature Discovery and NVIDIA GPU operators are installed and configured on OpenShift.
+- **Red Hat OpenShift AI (RHOAI)** Is already installed and configured on the cluster. Admin access is required. 
+- **Helm v3+** Is installed on your local machine.
 
 ## Installation with Helm
 
@@ -66,3 +67,65 @@ oc exec -it pvc-inspector-gpt-oss-20b -- /bin/sh
 ```
 
 *(Replace `gpt-oss-20b` with your custom model name if you changed it in `values.yaml`.)*
+
+### Testing the Model Endpoint with curl
+
+Once the `InferenceService` is in a ready state, you can test the endpoint using `curl`. The vLLM serving runtime provides an OpenAI-compatible API out of the box.
+
+First, wait for the inference service to be ready and get its external URL:
+```bash
+oc get inferenceservice gpt-oss-20b
+```
+
+Export the URL to a variable (ensure your model name is correct):
+```bash
+export MODEL_URL=$(oc get inferenceservice gpt-oss-20b -o jsonpath='{.status.url}')
+```
+
+Then, send a POST request to the `/v1/chat/completions` endpoint:
+```bash
+curl -k ${MODEL_URL}/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-oss-20b",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "What is the capital of France?"
+      }
+    ],
+    "max_tokens": 50
+  }'
+```
+
+If successful, you should receive a JSON response containing the model's generated text. If you enabled authentication in the `InferenceService` annotations, you'll need to pass an authorization token as well (`-H "Authorization: Bearer <TOKEN>"`).
+
+### Benchmarking with GuideLLM
+
+To get a quick overview of the model's performance (such as throughput and latency), you can use [GuideLLM](https://github.com/NeuralMagic/guidellm). 
+
+Since the vLLM ServingRuntime exposes an OpenAI-compatible API, GuideLLM can directly target your deployment.
+
+1. Install GuideLLM (it is recommended to use a Python virtual environment):
+```bash
+pip install guidellm
+```
+
+2. Run the benchmark tool using the `$MODEL_URL` you exported in the previous section. GuideLLM will test the model under various loads and report the performance metrics:
+```bash
+guidellm benchmark \
+  --target $MODEL_URL/v1 \
+  --model gpt-oss-20b \
+  --processor RedHatAI/gpt-oss-20b \
+  --data "prompt_tokens=256,output_tokens=128" \
+  --max-seconds 60 \
+  --rate-type concurrent \
+  --rate 1 \
+  --outputs json
+```
+
+*(Note: If your endpoint uses self-signed certificates or requires authentication, make sure to configure your environment variables or pass the corresponding GuideLLM parameters to handle TLS and API keys appropriately.)*
