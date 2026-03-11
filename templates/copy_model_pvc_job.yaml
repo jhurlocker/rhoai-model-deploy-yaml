@@ -1,14 +1,14 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: load-gpt-oss-20b-copy
+  name: load-{{ .Values.model.name }}-copy
 spec:
   template:
     spec:
       containers:
       - name: copy-model
         # Use the target model image itself
-        image: quay.io/redhat-ai-services/modelcar-catalog:gpt-oss-20b
+        image: {{ .Values.model.image }}
         command:
         - /bin/sh
         - -c
@@ -24,4 +24,4 @@ spec:
       volumes:
       - name: model-volume
         persistentVolumeClaim:
-          claimName: gpt-oss-20b-pvc
+          claimName: {{ .Values.model.name }}-pvc

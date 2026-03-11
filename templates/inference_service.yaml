@@ -1,0 +1,41 @@
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  annotations:
+    serving.kserve.io/stop: 'false'
+    security.opendatahub.io/enable-auth: 'false'
+    openshift.io/description: ''
+    openshift.io/display-name: "{{ .Values.model.name }}"
+    serving.kserve.io/deploymentMode: RawDeployment
+    opendatahub.io/hardware-profile-namespace: redhat-ods-applications
+    opendatahub.io/hardware-profile-name: "{{ .Values.hardwareProfile.name }}"
+    opendatahub.io/model-type: generative
+  name: "{{ .Values.model.name }}"
+  labels:
+    opendatahub.io/dashboard: 'true'
+    opendatahub.io/genai-asset: 'true'
+    networking.kserve.io/visibility: exposed
+spec:
+  predictor:
+    automountServiceAccountToken: false
+    maxReplicas: {{ .Values.inferenceService.maxReplicas }}
+    minReplicas: {{ .Values.inferenceService.minReplicas }}
+    model:
+      args:
+{{- range .Values.inferenceService.args }}
+        - "{{ . }}"
+{{- end }}
+      modelFormat:
+        name: "{{ .Values.model.format }}"
+      name: ''
+      resources:
+        limits:
+          cpu: "{{ .Values.hardwareProfile.cpuLimits }}"
+          memory: "{{ .Values.hardwareProfile.memoryLimits }}"
+          nvidia.com/gpu: "{{ .Values.hardwareProfile.gpuCount }}"
+        requests:
+          cpu: "{{ .Values.hardwareProfile.cpuRequests }}"
+          memory: "{{ .Values.hardwareProfile.memoryRequests }}"
+          nvidia.com/gpu: "{{ .Values.hardwareProfile.gpuCount }}"
+      runtime: "{{ .Values.model.name }}"
+      storageUri: "pvc://{{ .Values.model.name }}-pvc/"

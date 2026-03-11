@@ -1,0 +1,38 @@
+# Default values for rhoai-model-deploy
+
+model:
+  name: gpt-oss-20b
+  # The model container image to copy weights from
+  image: quay.io/redhat-ai-services/modelcar-catalog:gpt-oss-20b
+  format: vLLM
+
+storage:
+  pvcSize: 30Gi
+
+hardwareProfile:
+  name: gpu-profile
+  create: true
+  gpuCount: 1
+  cpuRequests: "1"
+  cpuLimits: "4"
+  memoryRequests: "6Gi"
+  memoryLimits: "16Gi"
+
+inferenceService:
+  args:
+    - '--enable-expert-parallel'
+    - '--gpu-memory-utilization=0.86'
+    - '--dtype=auto'
+    - '--max-model-len=21024'
+    - '--max-num-seqs=24'
+    - '--max-num-batched-tokens=1024'
+    - '--enable-prefix-caching'
+    - '--async-scheduling'
+  minReplicas: 1
+  maxReplicas: 1
+
+servingRuntime:
+  image: registry.redhat.io/rhaiis/vllm-cuda-rhel9:3.2.4
+
+pvcInspector:
+  enabled: true

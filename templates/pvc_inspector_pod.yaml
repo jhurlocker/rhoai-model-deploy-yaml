@@ -1,7 +1,8 @@
+{{- if .Values.pvcInspector.enabled }}
 apiVersion: v1
 kind: Pod
 metadata:
-  name: pvc-inspector
+  name: pvc-inspector-{{ .Values.model.name }}
 spec:
   containers:
   - name: inspector
@@ -13,4 +14,5 @@ spec:
   volumes:
   - name: data
     persistentVolumeClaim:
-      claimName: gpt-oss-20b-pvc
+      claimName: {{ .Values.model.name }}-pvc
+{{- end }}
