@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: load-gpt-oss-20b-copy
+spec:
+  template:
+    spec:
+      containers:
+      - name: copy-model
+        # Use the target model image itself
+        image: quay.io/redhat-ai-services/modelcar-catalog:gpt-oss-20b
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Copying model weights from container to PVC..."
+          cp -a /models/. /mnt/pvc/
+          echo "Done. Contents of PVC:"
+          ls -lh /mnt/pvc/
+        volumeMounts:
+        - name: model-volume
+          mountPath: /mnt/pvc
+      restartPolicy: Never
+      volumes:
+      - name: model-volume
+        persistentVolumeClaim:
+          claimName: gpt-oss-20b-pvc
