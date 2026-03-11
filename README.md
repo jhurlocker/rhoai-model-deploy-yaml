@@ -124,7 +124,7 @@ guidellm benchmark \
   --data "prompt_tokens=256,output_tokens=128" \
   --max-seconds 60 \
   --rate-type concurrent \
-  --rate 1 \
+  --rate 1,8,32 \
   --outputs json
 ```
 
