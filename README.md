@@ -112,7 +112,7 @@ Since the vLLM ServingRuntime exposes an OpenAI-compatible API, GuideLLM can dir
 
 1. Install GuideLLM (it is recommended to use a Python virtual environment):
 ```bash
-pip install guidellm
+pip install --force-reinstall "guidellm[recommended]==0.5.3"
 ```
 
 2. Run the benchmark tool using the `$MODEL_URL` you exported in the previous section. GuideLLM will test the model under various loads and report the performance metrics:
@@ -125,7 +125,7 @@ guidellm benchmark \
   --max-seconds 60 \
   --rate-type concurrent \
   --rate 1,8,32 \
-  --outputs json
+  --outputs json,html
 ```
 
 *(Note: If your endpoint uses self-signed certificates or requires authentication, make sure to configure your environment variables or pass the corresponding GuideLLM parameters to handle TLS and API keys appropriately.)*
