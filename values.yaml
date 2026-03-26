@@ -1,13 +1,13 @@
 # Default values for rhoai-model-deploy
 
 model:
-  name: gpt-oss-20b
+  name: gpt-oss-120b
   # The model container image to copy weights from
-  image: quay.io/redhat-ai-services/modelcar-catalog:gpt-oss-20b
+  image: registry.redhat.io/rhelai1/modelcar-gpt-oss-120b:1.5
   format: vLLM
 
 storage:
-  pvcSize: 30Gi
+  pvcSize: 150Gi
 
 hardwareProfile:
   name: gpu-profile
